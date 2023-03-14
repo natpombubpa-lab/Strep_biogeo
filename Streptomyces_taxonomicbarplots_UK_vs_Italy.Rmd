@@ -1,0 +1,352 @@
+---
+title: "Taxonomic barplots with >1% abundance"
+author: "Nat Pombubpa"
+date: "Mar 10, 2020"
+output: html_document
+---
+#Months
+
+```{r warning=FALSE, message=FALSE}
+library(ape)
+library(vegan)
+library(plyr)
+library(dplyr)
+library(scales)
+library(grid)
+library(reshape2)
+library(phyloseq)
+library(magrittr)
+library(ggplot2)
+library(ggpubr)
+library(data.table)
+library(tidyr)
+library(tidyverse)
+library(multcompView)
+library(VennDiagram)
+library(car)
+#library(Hmisc)
+```
+
+###STEP1: Import otu table for analysis using Phyloseq and drop taxonomy column
+```{r warning=FALSE}
+otus.raw = read.table("emp_streptomyces_w_taxonomy.txt",
+                   header=T,sep="\t",row.names = 1)
+otus.raw.notax = otus.raw[1:(length(otus.raw)-1)]
+```
+
+```{r}
+otumat <- as(as.matrix(otus.raw.notax), "matrix")
+OTU = otu_table(otumat, taxa_are_rows = TRUE)
+```
+
+###STEP2: Import taxonomy table for analysis using Phyloseq
+select taxnomy column (last column)
+```{r warning=FALSE}
+#taxmat.raw = read.table("emp_streptomyces_w_taxonomy.txt",
+#                   header=T,sep="\t",row.names = 1)
+taxmat.raw.noOTU = otus.raw[,ncol(otus.raw), drop = FALSE]
+```
+
+Brute-force remove D_0__, .....
+```{r}
+taxmat.raw.noOTU = as.data.frame(taxmat.raw.noOTU)
+taxmat.raw.noOTU$taxonomy = gsub("D_0__","",as.character(taxmat.raw.noOTU$taxonomy))
+taxmat.raw.noOTU$taxonomy = gsub("D_1__","",as.character(taxmat.raw.noOTU$taxonomy))
+taxmat.raw.noOTU$taxonomy = gsub("D_2__","",as.character(taxmat.raw.noOTU$taxonomy))
+taxmat.raw.noOTU$taxonomy = gsub("D_3__","",as.character(taxmat.raw.noOTU$taxonomy))
+taxmat.raw.noOTU$taxonomy = gsub("D_4__","",as.character(taxmat.raw.noOTU$taxonomy))
+taxmat.raw.noOTU$taxonomy = gsub("D_5__","",as.character(taxmat.raw.noOTU$taxonomy))
+taxmat.raw.noOTU$taxonomy = gsub("D_6__","",as.character(taxmat.raw.noOTU$taxonomy))
+```
+
+```{r}
+taxmat.raw.noOTU
+```
+
+
+Separate taxon into different levels
+```{r}
+tax_filtered = separate(taxmat.raw.noOTU, taxonomy, c("Kingdom","Phylum","Class","Order", "Family", "Genus","Species"), sep= ";", remove=TRUE)
+```
+
+```{r warning=FALSE}
+taxmat <- as(as.matrix(tax_filtered),"matrix")
+TAX = tax_table(taxmat)
+```
+
+```{r}
+head(TAX)
+```
+
+
+###STEP3: Import mapping file for analysis using Phyloseq
+
+1.Check mapping file before import to R, R will automatically change sample name that starts with number or contain “-” in sample name. If you get error in this step, you should check sample name first. 
+
+2.First column of first row should not start with #, R will not read the first row that starts with #
+
+3. You can choose which samples to include in analysis by indicating specific group in the column
+
+```{r warning=FALSE}
+meta = read.csv("emp_qiime_mapping_release1_20170912_cp.tsv",
+                  header=TRUE,row.names=1,
+                  sep="\t",stringsAsFactors=FALSE)
+#meta <- meta[which(meta$Layer %in% c("Surface")),]
+```
+
+Check if your metadata file has been import successfully and correctly, the output will show a table of your metadata file (mapping file). *If you do not have header, you might start your first row with # (remove # and reload your mapping file).
+
+```{r}
+head(meta)
+```
+
+Construct sample_data-class using imported metadata
+```{r warning=FALSE}
+sampleData <- sample_data(meta)
+```
+
+###STEP4: Construct Phyloseq object
+To construct phyloseq object, otu table, taxonomy table, and sampleData are required. Phylogenetic tree can be included, but it is not necessary for constructing phyloseq object.
+Construct Phyloseq object called "Physeq"
+
+```{r warning=FALSE}
+physeq = phyloseq(OTU,TAX,sampleData)
+```
+
+###STEP8: Check phyloseq object
+This should indicate that your physeq is a "phyloseq-class experiment-level object"
+
+```{r}
+physeq
+```
+
+
+
+remove any OTUs that present only one time (singletons)
+
+```{r}
+physeq.prune = prune_taxa(taxa_sums(physeq) > 1, physeq)
+```
+
+```{r}
+physeq.prune
+```
+
+remove any samples that has only one read
+```{r}
+physeq.prune.sample = prune_samples(sample_sums(physeq.prune) >= 5, physeq.prune)
+physeq.prune.sample
+```
+
+Remove negative samples
+```{r}
+physeq.prune.sample.noneg = subset_samples(physeq.prune.sample, empo_2!="Negative")
+physeq.prune.sample.noneg
+```
+
+Remove " uncultured bacterium"
+```{r}
+physeq.prune.sample.noneg.notaxa = subset_taxa(physeq.prune.sample.noneg, Species != " uncultured bacterium")
+physeq.prune.sample.noneg.notaxa
+```
+
+Remove " bacterium NR3"
+```{r}
+physeq.prune.sample.noneg.notaxa1 = subset_taxa(physeq.prune.sample.noneg.notaxa, Species != " bacterium NR3")
+physeq.prune.sample.noneg.notaxa1
+```
+
+Remove " Actinomycetales bacterium HPB43"
+```{r}
+physeq.prune.sample.noneg.notaxa2 = subset_taxa(physeq.prune.sample.noneg.notaxa1, Species != " Actinomycetales bacterium HPB43")
+physeq.prune.sample.noneg.notaxa2
+```
+
+Remove " Actinomycetales bacterium HO2017"
+```{r}
+physeq.prune.sample.noneg.notaxa3 = subset_taxa(physeq.prune.sample.noneg.notaxa2, Species != " Actinomycetales bacterium HO2017")
+physeq.prune.sample.noneg.notaxa3
+```
+
+Remove " uncultured actinobacterium"
+```{r}
+physeq.prune.sample.noneg.notaxa4 = subset_taxa(physeq.prune.sample.noneg.notaxa3, Species != " uncultured actinobacterium")
+physeq.prune.sample.noneg.notaxa4
+```
+
+
+## Non-saline samples for UK(Scotland) vs. Italy
+```{r}
+physeq.prune.sample.noneg.notaxa4.Scotland = subset_samples(physeq.prune.sample.noneg.notaxa4.Nonsaline, country=="GAZ:Scotland")
+physeq.prune.sample.noneg.notaxa4.Scotland
+```
+
+```{r}
+physeq.prune.sample.noneg.notaxa4.Italy = subset_samples(physeq.prune.sample.noneg.notaxa4.Nonsaline, country=="GAZ:Italy")
+physeq.prune.sample.noneg.notaxa4.Italy
+```
+
+
+```{r}
+physeq.prune.sample.noneg.notaxa4.Italy.Scotland = merge_phyloseq(physeq.prune.sample.noneg.notaxa4.Italy,physeq.prune.sample.noneg.notaxa4.Scotland)
+physeq.prune.sample.noneg.notaxa4.Italy.Scotland
+```
+
+
+
+##Make taxonomy table into a matrix and relabel NA as unknown
+```{r}
+tax.bac <- as(tax_table(physeq.prune.sample.noneg.notaxa4.Italy.Scotland),"matrix")
+head(tax.bac)
+tax.bac[is.na(tax.bac)] <- "Unknown"
+head(tax.bac)
+```
+
+###Convert tax table back to phyloseq object and generate phyloseq object with new tax table
+```{r}
+TAX.bac <- tax_table(tax.bac)
+bac.3 <- phyloseq(sample_data(physeq.prune.sample.noneg.notaxa4.Italy.Scotland),otu_table(physeq.prune.sample.noneg.notaxa4.Italy.Scotland),TAX.bac)
+bac.3
+```
+
+
+```{r}
+glom.bac <- speedyseq::tax_glom(bac.3,taxrank = "Species")
+glom.bac
+```
+
+```{r}
+head(tax_table(glom.bac))
+```
+
+
+##Transform OTU table to show relative abundance
+##Samples can also be merged together by a variable in the mapping file
+## country
+```{r}
+bac.abund <- merge_samples(glom.bac, "country")
+sample_data(bac.abund)$country <- factor(sample_names(bac.abund))
+bac.abund = transform_sample_counts(bac.abund, function(x) x / sum(x))
+bac.abund
+```
+
+
+##Merge taxonomic data with OTU table and mapping file (Can alter code to change taxonomic rank to Order, Class, Family, etc.) and change Phylum column from a factor to a character.
+
+```{r}
+data_glom.bac <- speedyseq::psmelt(bac.abund)
+data_glom.bac$Species <- as.character(data_glom.bac$Species)
+```
+
+##If a phylum has less than 1% abundance, phylum name is changed to <1% abund.
+
+```{r}
+data_glom.bac$Species[data_glom.bac$Abundance < 0.015] <- "<1.5% abund."
+```
+
+Count the levels present in the Phylum column
+
+```{r}
+Count = length(unique(data_glom.bac$Species))
+Count
+```
+
+Print out unique phyla names for insertion into barplots in next step.
+
+```{r}
+unique((data_glom.bac$Species))
+```
+
+###Create barplot of phyla - use facet_grid to separate samples by a variable ie in mapping file. Choose colors for plot in scale_fill_manual. color names can be found at http://www.stat.columbia.edu/~tzheng/files/Rcolor.pdf *amount of colors must match amount of level in phyla column
+
+```{r}
+data_glom.bac$empo_2 = factor(data_glom.bac$empo_2, levels = c("Animal", "Plant", "Non-saline", "Saline"))
+```
+
+```{r fig.height=5, fig.width=8, fig.align="center"}
+# The palette with black:
+cbbPalette <- c("#009E73","#999999", "#E69F00", "#56B4E9", "#F0E442", "#0072B2", "#D55E00", "#CC79A7", "midnightblue", "lightgreen","saddlebrown", "brown", "aquamarine4","lavenderblush2","snow3", "darkblue", "darkgoldenrod1", "darkseagreen","darkgray", "darkorchid", "darkolivegreen1", "black","lightskyblue", "darkgreen", "deeppink", "khaki2", "firebrick", "brown1", "darkorange1", "cyan1", "royalblue4", "darksalmon", "darkblue","royalblue4", "dodgerblue3", "steelblue1", "lightskyblue", "darkseagreen", "darkgoldenrod1", "darkseagreen", "darkorchid", "darkolivegreen1", "brown1", "darkorange1", "cyan1", "darkgrey")
+taxcom_layer_pl = ggplot(data = data_glom.bac, mapping = aes_string(x = "country" ,y = "Abundance", fill = "Species")) + 
+  geom_bar(stat="identity", position="fill") + 
+  ggtitle("Italy VS. UK (Scotland) Soil Streptomyces Taxonomic Composition")+
+  theme_pubr(border= TRUE) + 
+  theme(plot.title = element_text(hjust = 0.5)) + scale_fill_manual(values = cbbPalette) +
+  scale_y_continuous(labels = scales::percent)
+print(taxcom_layer_pl + theme(legend.position="right") + guides(fill=guide_legend(nrow=22)))
+```
+
+```{r}
+png("./Figures/Taxa_plots/Italy_VS_Scotland_Soil_Streptomyces_Taxa.png", units="in", width = 10, height = 8, res = 600 )
+taxcom_layer_pl + theme(legend.position="right") + guides(fill=guide_legend(nrow=22)) #+ theme(axis.text.x = element_text(angle = 45, hjust = 1))
+dev.off()
+```
+
+```{r}
+taxcom_layer_pl + scale_y_continuous(labels = scales::percent)
+```
+
+
+## EMPO3
+
+```{r}
+bac.abund <- merge_samples(glom.bac, "empo_3")
+sample_data(bac.abund)$empo_3 <- factor(sample_names(bac.abund))
+bac.abund = transform_sample_counts(bac.abund, function(x) x / sum(x))
+bac.abund
+```
+
+
+##Merge taxonomic data with OTU table and mapping file (Can alter code to change taxonomic rank to Order, Class, Family, etc.) and change Phylum column from a factor to a character.
+
+```{r}
+data_glom.bac <- speedyseq::psmelt(bac.abund)
+data_glom.bac$Species <- as.character(data_glom.bac$Species)
+```
+
+##If a phylum has less than 1% abundance, phylum name is changed to <1% abund.
+
+```{r}
+data_glom.bac$Species[data_glom.bac$Abundance < 0.05] <- "<5% abund."
+```
+
+Count the levels present in the Phylum column
+
+```{r}
+Count = length(unique(data_glom.bac$Species))
+Count
+```
+
+Print out unique phyla names for insertion into barplots in next step.
+
+```{r}
+unique((data_glom.bac$Species))
+```
+
+###Create barplot of phyla - use facet_grid to separate samples by a variable ie in mapping file. Choose colors for plot in scale_fill_manual. color names can be found at http://www.stat.columbia.edu/~tzheng/files/Rcolor.pdf *amount of colors must match amount of level in phyla column
+
+```{r}
+data_glom.bac$empo_2 = factor(data_glom.bac$empo_2, levels = c("Animal", "Plant", "Non-saline", "Saline"))
+```
+
+```{r fig.height=5, fig.width=8, fig.align="center"}
+# The palette with black:
+cbbPalette <- c("#009E73","#999999", "#E69F00", "#56B4E9", "#F0E442", "#0072B2", "#D55E00", "#CC79A7", "midnightblue", "lightgreen","saddlebrown", "brown", "aquamarine4","lavenderblush2","snow3", "darkblue", "darkgoldenrod1", "darkseagreen","darkgray", "darkorchid", "darkolivegreen1", "black","lightskyblue", "darkgreen", "deeppink", "khaki2", "firebrick", "brown1", "darkorange1", "slategray3", "cyan1", "royalblue4", "darksalmon", "darkblue","royalblue4", "dodgerblue3", "steelblue1", "lightskyblue", "darkseagreen", "darkgoldenrod1", "darkseagreen", "darkorchid", "darkolivegreen1", "brown1", "darkorange1", "cyan1", "darkgrey")
+taxcom_layer_pl = ggplot(data = data_glom.bac, mapping = aes_string(x = "empo_3" ,y = "Abundance", fill = "Species")) + 
+  geom_bar(stat="identity", position="fill") + 
+  ggtitle("Streptomyces Taxonomic Composition by EMPO level 3")+
+  theme_pubr(border= TRUE) + 
+  theme(plot.title = element_text(hjust = 0.5)) + scale_fill_manual(values = cbbPalette) +
+  scale_y_continuous(labels = scales::percent)
+print(taxcom_layer_pl + theme(legend.position="bottom") + guides(fill=guide_legend(nrow=5)))
+```
+
+```{r}
+png("./Figures/Taxa_plots/Streptomyces_Taxa_by_EMPO3.png", units="in", width = 10, height = 8, res = 600 )
+taxcom_layer_pl + theme(legend.position="bottom") + guides(fill=guide_legend(nrow=10)) + theme(axis.text.x = element_text(angle = 45, hjust = 1))
+dev.off()
+```
+
+
+
+next taxonomy by biome?
+

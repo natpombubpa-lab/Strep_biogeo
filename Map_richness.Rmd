@@ -1,0 +1,105 @@
+---
+title: "Map_richness"
+author: "Nat Pombubpa"
+date: "3/11/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r}
+library(mapdata)
+library(ggfortify)
+```
+
+```{r}
+worldmap = map_data("world")
+worldmap
+```
+
+```{r}
+head(means)
+```
+
+```{r}
+means$country = gsub("GAZ:","",as.character(means$country))
+means
+```
+
+```{r}
+means
+```
+
+
+```{r}
+names(means)[1] = 'region'
+```
+
+```{r}
+means$region = gsub("United States of America","USA",as.character(means$region))
+```
+
+```{r}
+means$region = gsub("United Kingdom","UK",as.character(means$region))
+```
+
+```{r}
+means$region = gsub("Scotland","UK",as.character(means$region))
+```
+
+```{r}
+mapdata = left_join(worldmap, means, by = "region")
+head(mapdata)
+```
+```{r}
+mapdata2 = mapdata%>%filter(!is.na(mapdata$Observed))
+region.lab.data = mapdata2 %>%
+                  group_by(region) %>%
+                  summarise(long = mean(long), lat = mean(lat))
+```
+
+
+
+```{r}
+Strep_rich_map = ggplot(mapdata, aes( x = long, y = lat)) +
+                  geom_polygon(aes(group = group, fill = Observed), color = "grey28") +
+                  scale_fill_gradient(name = "Observed", low = "yellow1", high = "red2", na.value = "grey90") +
+                  #geom_text(aes(label = region), data = region.lab.data,  size = 3, hjust = 0.5)+
+                  theme_bw() + ggtitle("Streptomyces spp. global diversity in Plant rhizosphere samples") +
+                  theme(plot.title = element_text(hjust = 0.5))
+
+Strep_rich_map
+```
+
+
+```{r warning=FALSE}
+pdf("./Figures/Map/Streptomyces_global_diversity_Plant_rhizosphere_12x6.5_label.pdf", width = 12, height = 6.5 )
+Strep_rich_map
+dev.off()
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

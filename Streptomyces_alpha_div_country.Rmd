@@ -1,0 +1,306 @@
+---
+title: "Streptomyces_alphaDiv_Earth_Microbiome"
+author: "Nat Pombubpa"
+date: "January 10, 2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r warning=FALSE, message=FALSE}
+library(ape)
+library(vegan)
+library(plyr)
+library(dplyr)
+library(scales)
+library(grid)
+library(reshape2)
+library(phyloseq)
+library(magrittr)
+library(ggplot2)
+library(ggpubr)
+library(data.table)
+library(tidyr)
+library(tidyverse)
+library(multcompView)
+#library(VennDiagram)
+library(car)
+#library(MASS)
+```
+
+###STEP1: Import otu table for analysis using Phyloseq and drop taxonomy column
+```{r warning=FALSE}
+otus.raw = read.table("emp_streptomyces_w_taxonomy.txt",
+                   header=T,sep="\t",row.names = 1)
+otus.raw.notax = otus.raw[1:(length(otus.raw)-1)]
+```
+
+```{r}
+otumat <- as(as.matrix(otus.raw.notax), "matrix")
+OTU = otu_table(otumat, taxa_are_rows = TRUE)
+```
+
+###STEP2: Import taxonomy table for analysis using Phyloseq
+select taxnomy column (last column)
+```{r warning=FALSE}
+#taxmat.raw = read.table("emp_streptomyces_w_taxonomy.txt",
+#                   header=T,sep="\t",row.names = 1)
+taxmat.raw.noOTU = otus.raw[,ncol(otus.raw), drop = FALSE]
+```
+
+Brute-force remove D_0__, .....
+```{r}
+taxmat.raw.noOTU = as.data.frame(taxmat.raw.noOTU)
+taxmat.raw.noOTU$taxonomy = gsub("D_0__","",as.character(taxmat.raw.noOTU$taxonomy))
+taxmat.raw.noOTU$taxonomy = gsub("D_1__","",as.character(taxmat.raw.noOTU$taxonomy))
+taxmat.raw.noOTU$taxonomy = gsub("D_2__","",as.character(taxmat.raw.noOTU$taxonomy))
+taxmat.raw.noOTU$taxonomy = gsub("D_3__","",as.character(taxmat.raw.noOTU$taxonomy))
+taxmat.raw.noOTU$taxonomy = gsub("D_4__","",as.character(taxmat.raw.noOTU$taxonomy))
+taxmat.raw.noOTU$taxonomy = gsub("D_5__","",as.character(taxmat.raw.noOTU$taxonomy))
+taxmat.raw.noOTU$taxonomy = gsub("D_6__","",as.character(taxmat.raw.noOTU$taxonomy))
+```
+
+```{r}
+taxmat.raw.noOTU
+```
+
+
+Separate taxon into different levels
+```{r}
+tax_filtered = separate(taxmat.raw.noOTU, taxonomy, c("Kingdom","Phylum","Class","Order", "Family", "Genus","Species"), sep= ";", remove=TRUE)
+```
+
+```{r warning=FALSE}
+taxmat <- as(as.matrix(tax_filtered),"matrix")
+TAX = tax_table(taxmat)
+```
+
+```{r}
+head(TAX)
+```
+
+
+###STEP3: Import mapping file for analysis using Phyloseq
+
+1.Check mapping file before import to R, R will automatically change sample name that starts with number or contain “-” in sample name. If you get error in this step, you should check sample name first. 
+
+2.First column of first row should not start with #, R will not read the first row that starts with #
+
+3. You can choose which samples to include in analysis by indicating specific group in the column
+
+```{r warning=FALSE}
+meta = read.csv("emp_qiime_mapping_release1_20170912_cp.tsv",
+                  header=TRUE,row.names=1,
+                  sep="\t",stringsAsFactors=FALSE)
+#meta <- meta[which(meta$Layer %in% c("Surface")),]
+```
+
+Check if your metadata file has been import successfully and correctly, the output will show a table of your metadata file (mapping file). *If you do not have header, you might start your first row with # (remove # and reload your mapping file).
+
+```{r}
+head(meta)
+```
+
+Construct sample_data-class using imported metadata
+```{r warning=FALSE}
+sampleData <- sample_data(meta)
+```
+
+###STEP4: Construct Phyloseq object
+To construct phyloseq object, otu table, taxonomy table, and sampleData are required. Phylogenetic tree can be included, but it is not necessary for constructing phyloseq object.
+Construct Phyloseq object called "Physeq"
+
+```{r warning=FALSE}
+physeq = phyloseq(OTU,TAX,sampleData)
+```
+
+###STEP8: Check phyloseq object
+This should indicate that your physeq is a "phyloseq-class experiment-level object"
+
+```{r}
+physeq
+```
+
+```{r}
+unique(sample_data(physeq)$country)
+```
+
+
+remove any OTUs that present only one time (singletons)
+
+```{r}
+physeq.prune = prune_taxa(taxa_sums(physeq) > 1, physeq)
+```
+
+```{r}
+physeq.prune
+```
+
+remove any samples that has only one read
+```{r}
+physeq.prune.sample = prune_samples(sample_sums(physeq.prune) >= 5, physeq.prune)
+physeq.prune.sample
+```
+
+Remove negative samples
+```{r}
+physeq.prune.sample.noneg = subset_samples(physeq.prune.sample, empo_2!="Negative")
+physeq.prune.sample.noneg
+```
+
+Remove " uncultured bacterium"
+```{r}
+physeq.prune.sample.noneg.notaxa = subset_taxa(physeq.prune.sample.noneg, Species != " uncultured bacterium")
+physeq.prune.sample.noneg.notaxa
+```
+
+Remove " bacterium NR3"
+```{r}
+physeq.prune.sample.noneg.notaxa1 = subset_taxa(physeq.prune.sample.noneg.notaxa, Species != " bacterium NR3")
+physeq.prune.sample.noneg.notaxa1
+```
+
+Remove " Actinomycetales bacterium HPB43"
+```{r}
+physeq.prune.sample.noneg.notaxa2 = subset_taxa(physeq.prune.sample.noneg.notaxa1, Species != " Actinomycetales bacterium HPB43")
+physeq.prune.sample.noneg.notaxa2
+```
+
+Remove " Actinomycetales bacterium HO2017"
+```{r}
+physeq.prune.sample.noneg.notaxa3 = subset_taxa(physeq.prune.sample.noneg.notaxa2, Species != " Actinomycetales bacterium HO2017")
+physeq.prune.sample.noneg.notaxa3
+```
+
+Remove " uncultured actinobacterium"
+```{r}
+physeq.prune.sample.noneg.notaxa4 = subset_taxa(physeq.prune.sample.noneg.notaxa3, Species != " uncultured actinobacterium")
+physeq.prune.sample.noneg.notaxa4
+```
+
+##Alpha Diversity
+
+Remove confounding effect by subset EMPO level 2 then plot map for each empo (Animal, Plant, Non-saline, Saline)
+
+```{r}
+physeq.prune.sample.noneg.notaxa4.Nonsaline = subset_samples(physeq.prune.sample.noneg.notaxa4, empo_3=="Soil (non-saline)")
+physeq.prune.sample.noneg.notaxa4.Nonsaline
+```
+
+```{r}
+unique(sample_data(physeq.prune.sample.noneg.notaxa4.Nonsaline)$country)
+```
+
+
+```{r}
+physeq.prune.sample.noneg.notaxa4.Nonsaline.USA = subset_samples(physeq.prune.sample.noneg.notaxa4.Nonsaline, country=="GAZ:United States of America")
+physeq.prune.sample.noneg.notaxa4.Nonsaline.USA
+```
+
+
+
+```{r}
+physeq.prune.sample.plot.richness.biome = plot_richness(physeq.prune.sample.noneg.notaxa4.Nonsaline, x = "country", color = "country", measures = c("Observed")) + 
+  geom_boxplot() + 
+  theme_bw() + ggtitle("Streptomyces Alpha diversity in Non-Saline samples by country") + 
+  theme_pubr(border= TRUE, legend = c("none")) +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) 
+physeq.prune.sample.plot.richness.biome
+```
+
+###ANOVA
+```{r}
+alpha.diversity = estimate_richness(physeq.prune.sample.noneg.notaxa4.Nonsaline, measures = c("Observed"))
+data.anova = cbind(sample_data(physeq.prune.sample.noneg.notaxa4.Nonsaline), alpha.diversity)
+physeq.anova = aov(Observed ~ country, data.anova)
+
+summary(physeq.anova)
+Anova(physeq.anova, type = "III")
+#physeq.prune.rarefy.anova.CrusttypeLayerInteraction = aov(Observed ~ Layer/Crust_type_no_depth, data.anova)
+#summary(physeq.prune.rarefy.anova.CrusttypeLayerInteraction)
+```
+
+```{r}
+means = aggregate(Observed ~ country, data.anova, mean)
+```
+
+```{r}
+means
+```
+
+
+```{r}
+tukey.ps = TukeyHSD(x=physeq.anova)
+summary(tukey.ps)
+```
+
+
+```{r}
+generate_label_df <- function(tukey.ps, variable){
+ 
+     # Extract labels and factor levels from Tukey post-hoc 
+     Tukey.levels <- tukey.ps[[variable]][,4]
+     Tukey.labels <- data.frame(multcompLetters(Tukey.levels)['Letters'])
+     
+     #I need to put the labels in the same order as in the boxplot :
+     Tukey.labels$treatment=rownames(Tukey.labels)
+     Tukey.labels=Tukey.labels[order(Tukey.labels$treatment) , ]
+     return(Tukey.labels)
+     }
+```
+
+```{r}
+head(tukey.ps$country)
+```
+```{r}
+LABELS=generate_label_df(tukey.ps, 'country')
+```
+
+```{r}
+names(LABELS) = c('Letters','country')
+```
+
+```{r}
+LABELS
+```
+
+```{r}
+ylabel <- data.frame("ylabel" = c(3.5,3.5,3.5,3.5,3.5,3.5,3.5,3.5,3.5,3.5,3.5,3.5,3.5,3.5,3.5,3.5,3.5,3.5,3.5,3.5,3.5)) 
+```
+
+```{r}
+ylabel <- data.frame("ylabel" = c(100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100)) 
+```
+
+```{r}
+LABELS$ylabel<-ylabel$ylabel
+```
+
+#Alpha diversity 
+
+```{r}
+physeq.prune.sample.plot.richness.biome = plot_richness(physeq.prune.sample.noneg.notaxa4.Nonsaline, x = "country", color = "country", measures = c("Observed")) + 
+  #stat_boxplot(geom ='errorbar', width = 0.2) +
+  geom_boxplot(lwd=0.5, outlier.shape = NA) + 
+  theme_bw() + ggtitle("Streptomyces Alpha diversity in Soil (non-saline) samples by country") + 
+  stat_compare_means(method = "anova", label.y = 3.75) + 
+  theme_pubr(border= TRUE, legend = c("none")) +
+  scale_colour_hue(l = 58) +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  geom_text(data=LABELS, aes(x=LABELS$country, y = LABELS$ylabel , label = LABELS$Letters)) +
+  #scale_color_manual(values = c("#E69F00", "#009E73", "#999999", "#56B4E9"))+
+  theme(axis.text.x = element_text(angle = 75, hjust = 1)) 
+
+physeq.prune.sample.plot.richness.biome
+```
+
+
+```{r warning=FALSE}
+pdf("./Figures/AlphaDiv/Streptomyces_Alpha_diversity_in_non-saline_by_country_2_12x8.pdf", width = 12, height = 8)
+physeq.prune.sample.plot.richness.biome
+dev.off()
+```
+
