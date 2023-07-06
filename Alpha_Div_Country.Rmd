@@ -1,0 +1,94 @@
+---
+title: "Country_Alpha"
+output: html_document
+date: "2023-07-05"
+---
+
+```{r}
+library(ggplot2)
+```
+
+```{r}
+country_alp = read.csv("Country_alpha_div.csv")
+```
+
+```{r}
+AlphaDiv_country <- ggplot(country_alp, aes(x = Number, y = Observed)) + geom_point() +
+  geom_smooth(method=lm, se=FALSE) +
+  theme_minimal() +
+  labs(x = 'Number of Sample', y = 'Observed')
+AlphaDiv_country
+```
+```{r}
+Alp_num <- lm(Number ~ Observed, data = country_alp)
+summary(Alp_num)
+```
+
+
+
+
+
+
+```{r}
+pdf("./Figures/AlphaDiv/AlphaDiv_country_Observed.pdf", width = 10, height = 8 )
+AlphaDiv_country + scale_colour_hue(c=75, l=65)
+dev.off()
+```
+
+```{r}
+AlphaDiv_country_size <- ggplot(country_alp, aes(x = country, y = Observed, size = Number)) + geom_point() +
+  theme_minimal()  +
+  theme(axis.text.x = element_text(angle = 75, hjust = 1)) 
+AlphaDiv_country_size
+```
+
+```{r}
+country_alp_size = read.csv("Country_alpha_div1.csv")
+```
+
+```{r}
+lm_fit <- lm(Observed ~ country, data=country_alp_size)
+lm_fit
+```
+
+
+```{r}
+AlphaDiv_country_size2 <- ggplot(country_alp_size, aes(x = country, y = Observed, size = Number)) +
+  geom_point() +
+  theme_minimal()  +
+  theme(axis.text.x = element_text(angle = 75, hjust = 1)) +
+  scale_x_discrete(limits=country_alp_size$country)
+AlphaDiv_country_size2
+```
+
+
+
+
+```{r}
+AlphaDiv_country_lat <- ggplot(country_alp, aes(x = latitude, y = Observed)) + geom_point() +
+  geom_smooth(method=lm, se=FALSE) +
+  theme_minimal() +
+  labs(x = 'Latitude Degree', y = 'Observed')
+AlphaDiv_country_lat
+```
+
+```{r}
+Alp_lat <- lm(latitude ~ Observed, data = country_alp)
+summary(Alp_lat)
+```
+
+
+```{r}
+AlphaDiv_country_lon <- ggplot(country_alp, aes(x = longitude, y = Observed)) + geom_point() +
+  geom_smooth(method=lm, se=FALSE) +
+  theme_minimal() +
+  labs(x = 'Longitude Degree', y = 'Observed')
+AlphaDiv_country_lon
+```
+
+```{r}
+Alp_lon <- lm(longitude ~ Observed, data = country_alp)
+summary(Alp_lon)
+```
+```
+
