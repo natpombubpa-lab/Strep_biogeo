@@ -1,0 +1,54 @@
+---
+title: "Latitude_deg"
+output: html_document
+date: "2023-07-11"
+---
+
+####PLUS
+```{r}
+lat_plus = read.csv("lat_plus.csv")
+```
+
+```{r}
+Alp_lat_plus <- ggplot(lat_plus, aes(x = latitude, y = Observed)) + geom_point() +
+  geom_smooth(method=lm, se=FALSE) +
+  theme_minimal() 
+Alp_lat_plus
+```
+
+
+```{r}
+Alp_lat_plus_lm <- lm(latitude ~ Observed, data = lat_plus)
+summary(Alp_lat_plus_lm)
+```
+
+```{r}
+pdf("./Figures/AlphaDiv/Observed_lat_PLUS.pdf", width = 8, height = 6 )
+Alp_lat_plus + scale_colour_hue(c=75, l=65)
+dev.off()
+```
+
+
+####MINUS
+```{r}
+lat_min = read.csv("lat_minus.csv")
+```
+
+```{r}
+Alp_lat_min <- ggplot(lat_min, aes(x = latitude, y = Observed)) + geom_point() +
+  geom_smooth(method=lm, se=FALSE) +
+  theme_minimal() 
+Alp_lat_min
+```
+
+
+```{r}
+Alp_lat_min_lm <- lm(latitude ~ Observed, data = lat_min)
+summary(Alp_lat_min_lm)
+```
+
+```{r}
+pdf("./Figures/AlphaDiv/Observed_lat_min.pdf", width = 8, height = 6 )
+Alp_lat_min + scale_colour_hue(c=75, l=65)
+dev.off()
+```

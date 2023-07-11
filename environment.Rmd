@@ -1,0 +1,173 @@
+---
+title: "Alpha_Environment"
+output: html_document
+date: "2023-07-11"
+---
+
+#####ENVIRONMENT
+```{r}
+data4 = read.csv("environment.csv")
+```
+
+###pH
+```{r}
+Alpha_envi <- ggplot(data4, aes(x = ph, y = observed)) + 
+  geom_point() + theme_minimal() + ggtitle("Alpha diversity by pH") + 
+  geom_smooth(method=lm, se=FALSE)  
+  #theme_pubr(border= TRUE, legend = c("none")) +
+  #theme(plot.title = element_text(hjust = 0.5)) +
+  #theme(axis.text.x = element_text(angle = 75, hjust = 1)) #+
+  #geom_text(data=LABELS.empo3, aes(x=LABELS.empo3$empo_3, y = LABELS.empo3$ylabel , label = LABELS.empo3$Letters, color = "red"))
+Alpha_envi
+```
+
+```{r}
+Alp_ph <- lm(ph ~ observed, data = data4)
+summary(Alp_ph)
+```
+
+```{r}
+pdf("./Figures/AlphaDiv/AlphaDiv_pH.pdf", width = 8, height = 6 )
+Alpha_envi + scale_colour_hue(c=75, l=65)
+dev.off()
+```
+
+
+###TEMP
+
+```{r}
+Alpha_envi_temp <- ggplot(data4, aes(x = temperature_deg_c, y = observed)) + 
+  geom_point() + theme_minimal() +
+  geom_smooth(method=lm, se=FALSE)  
+
+Alpha_envi_temp
+```
+
+```{r}
+Alp_temp <- lm(temperature_deg_c ~ observed, data = data4)
+summary(Alp_temp)
+```
+
+```{r}
+pdf("./Figures/AlphaDiv/AlphaDiv_temp.pdf", width = 8, height = 6 )
+Alpha_envi_temp + scale_colour_hue(c=75, l=65)
+dev.off()
+```
+
+###SALINITY
+
+```{r}
+Alpha_envi_salt <- ggplot(data4, aes(x = salinity_psu, y = observed)) + 
+  geom_point() + theme_minimal() +
+  geom_smooth(method=lm, se=FALSE)  
+
+Alpha_envi_salt
+```
+
+```{r}
+Alp_salt <- lm(salinity_psu ~ observed, data = data4)
+summary(Alp_salt)
+```
+
+
+```{r}
+pdf("./Figures/AlphaDiv/AlphaDiv_salt.pdf", width = 8, height = 6 )
+Alpha_envi_salt + scale_colour_hue(c=75, l=65)
+dev.off()
+```
+
+###OXYGEN
+
+```{r}
+Alpha_envi_oxy <- ggplot(data4, aes(x = oxygen_mg_per_l, y = observed)) + 
+  geom_point() + theme_minimal() +
+  geom_smooth(method=lm, se=FALSE)  
+
+Alpha_envi_oxy
+```
+
+```{r}
+Alp_oxy <- lm(oxygen_mg_per_l ~ observed, data = data4)
+summary(Alp_oxy)
+```
+
+```{r}
+pdf("./Figures/AlphaDiv/AlphaDiv_oxy.pdf", width = 8, height = 6 )
+Alpha_envi_oxy + scale_colour_hue(c=75, l=65)
+dev.off()
+```
+
+
+###Phosphate
+
+```{r}
+Alpha_envi_pp <- ggplot(data4, aes(x = phosphate_umol_per_l, y = observed)) + 
+  geom_point() + theme_minimal() +
+  geom_smooth(method=lm, se=FALSE)  
+
+Alpha_envi_pp
+```
+
+```{r}
+Alp_pp <- lm(phosphate_umol_per_l ~ observed, data = data4)
+summary(Alp_pp)
+```
+
+```{r}
+pdf("./Figures/AlphaDiv/AlphaDiv_pp.pdf", width = 8, height = 6 )
+Alpha_envi_pp + scale_colour_hue(c=75, l=65)
+dev.off()
+```
+
+###Ammonium
+
+```{r}
+Alpha_envi_am <- ggplot(data4, aes(x = ammonium_umol_per_l, y = observed)) + 
+  geom_point() + theme_minimal() +
+  geom_smooth(method=lm, se=FALSE)  
+
+Alpha_envi_am
+```
+
+```{r}
+Alp_am <- lm(ammonium_umol_per_l ~ observed, data = data4)
+summary(Alp_am)
+```
+
+###NITRATE
+
+```{r}
+Alpha_envi_ni <- ggplot(data4, aes(x = nitrate_umol_per_l, y = observed)) + 
+  geom_point() + theme_minimal() +
+  geom_smooth(method=lm, se=FALSE)  
+
+Alpha_envi_ni
+```
+
+```{r}
+Alp_ni <- lm(nitrate_umol_per_l ~ observed, data = data4)
+summary(Alp_ni)
+```
+
+
+###SULFATE
+
+```{r}
+Alpha_envi_sul <- ggplot(data4, aes(x = sulfate_umol_per_l, y = observed)) + 
+  geom_point() + theme_minimal() +
+  geom_smooth(method=lm, se=FALSE)  
+
+Alpha_envi_sul
+```
+
+```{r}
+Alp_sul <- lm(sulfate_umol_per_l ~ observed, data = data4)
+summary(Alp_sul)
+```
+
+
+
+
+
+
+

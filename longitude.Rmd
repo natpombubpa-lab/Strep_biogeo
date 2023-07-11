@@ -1,0 +1,54 @@
+---
+title: "LONGITUDE"
+output: html_document
+date: "2023-07-11"
+---
+
+####PLUS
+```{r}
+lon_plus = read.csv("lon_plus.csv")
+```
+
+```{r}
+Alp_lon_plus <- ggplot(lon_plus, aes(x = longitude, y = Observed)) + geom_point() +
+  geom_smooth(method=lm, se=FALSE) +
+  theme_minimal() 
+Alp_lon_plus
+```
+
+
+```{r}
+Alp_lon_plus_lm <- lm(longitude ~ Observed, data = lon_plus)
+summary(Alp_lon_plus_lm)
+```
+
+```{r}
+pdf("./Figures/AlphaDiv/Observed_lat_PLUS.pdf", width = 8, height = 6 )
+Alp_lat_plus + scale_colour_hue(c=75, l=65)
+dev.off()
+```
+
+
+####MINUS
+```{r}
+lon_min = read.csv("lon_minus.csv")
+```
+
+```{r}
+Alp_lon_min <- ggplot(lon_min, aes(x = longitude, y = Observed)) + geom_point() +
+  geom_smooth(method=lm, se=FALSE) +
+  theme_minimal() 
+Alp_lon_min
+```
+
+
+```{r}
+Alp_lon_min_lm <- lm(longitude ~ Observed, data = lon_min)
+summary(Alp_lon_min_lm)
+```
+
+```{r}
+pdf("./Figures/AlphaDiv/Observed_lat_min.pdf", width = 8, height = 6 )
+Alp_lat_min + scale_colour_hue(c=75, l=65)
+dev.off()
+```
