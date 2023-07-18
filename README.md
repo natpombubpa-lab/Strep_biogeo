@@ -1,6 +1,8 @@
 # Strep_biogeo
 ## _Streptomycin global biogeography project_
 
+* **STREPTOMYCES OTU TABLE**
+    * [TAXONOMY FILE](https://drive.google.com/file/d/1Cr1fjyM9MNazcv-yzV966DziyrzHdXsY/view?usp=drive_link)
 * **METADATA MAPPING FILE**
   * emp_qiime_mapping_release1_20170912_cp_nosep.tsv
   * Sample_meadata_summary.csv 
@@ -20,5 +22,3 @@
     * environment.Rmd
     * latitude.Rmd
     * longtitude.Rmd
-* **STREPTOMYCES TAXONOMY FILE**
-    * [TAXONOMY FILE](https://drive.google.com/file/d/1Cr1fjyM9MNazcv-yzV966DziyrzHdXsY/view?usp=drive_link)
