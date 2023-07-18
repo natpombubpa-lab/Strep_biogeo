@@ -7,16 +7,16 @@
 * **TAXONOMIC COMPSITION**
     * Streptomyces_taxonomicbarplots.Rmd
     * Streptomyces_taxonomicbarplots_UK_vs_Italy.Rmd
-* MAPPING OF ALPHA DIVERSITY (NUMBER OF SAMPLE, LATITUDE AND LONGITUDE)
+* **MAPPING OF ALPHA DIVERSITY (NUMBER OF SAMPLE, LATITUDE AND LONGITUDE)**
     * Alpha_Div_Country.Rmd
-* RICHNESS
+* **RICHNESS**
     * Map_richness.Rmd
-* ALPHA DIVERSITY
+* **ALPHA DIVERSITY**
     * Streptomyces_alpha_div.Rmd
     * Streptomyces_alpha_div_country.Rmd
-* BETA DIVERSITY
+* **BETA DIVERSITY**
     * Streptomyces_beta_div.Rmd
-* LINEAR REGRESSION OF ENVIRONMENT, LATITUDE AND LONGITUDE
+* **LINEAR REGRESSION OF ENVIRONMENT, LATITUDE AND LONGITUDE**
     * environment.Rmd
     * latitude.Rmd
     * longtitude.Rmd
