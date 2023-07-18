@@ -8,7 +8,7 @@
   * R Markdown files 
     * Streptomyces_taxonomicbarplots.Rmd
     * Streptomyces_taxonomicbarplots_UK_vs_Italy.Rmd
-* ALPHA DIVERSITY
+* MAPPING OF ALPHA DIVERSITY _(NUMBER OF SAMPLE, LATITUDE AND LONGITUDE)_
   *  R Markdown files
     * Streptomyces_alpha_div.Rmd
     * Streptomyces_alpha_div_country.Rmd
