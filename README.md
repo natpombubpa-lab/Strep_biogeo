@@ -1,5 +1,5 @@
 # Strep_biogeo
-## Streptomycin global biogeography project
+## _Streptomycin global biogeography project_
 
 * **METADATA MAPPING FILE**
   * emp_qiime_mapping_release1_20170912_cp_nosep.tsv
