@@ -18,7 +18,7 @@
     * Streptomyces_beta_div.Rmd
 * **MAPPING OF ALPHA DIVERSITY (NUMBER OF SAMPLE, LATITUDE AND LONGITUDE)**
     * Alpha_Div_Country.Rmd
-* **LINEAR REGRESSION OF ENVIRONMENT, LATITUDE AND LONGITUDE**
+* **LINEAR REGRESSION (ENVIRONMENT, LATITUDE AND LONGITUDE)**
     * environment.Rmd
     * latitude.Rmd
     * longtitude.Rmd
