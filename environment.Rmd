@@ -4,7 +4,7 @@ output: html_document
 date: "2023-07-11"
 ---
 
-#####ENVIRONMENT
+#####ENVIRONMENT 
 ```{r}
 data4 = read.csv("environment.csv")
 ```
@@ -163,6 +163,23 @@ Alpha_envi_sul
 ```{r}
 Alp_sul <- lm(sulfate_umol_per_l ~ observed, data = data4)
 summary(Alp_sul)
+```
+
+####MULTIPLE LINEAR REGRESSION
+##STREPTOMYCES
+```{r}
+model <- lm(observed ~ temperature_deg_c + ph + salinity_psu, data = data4)
+summary(model)
+```
+
+##OVERALL MICROBIAL
+```{r}
+envi_micro <- read.csv("envi_micro.csv")
+```
+
+```{r}
+multi <- lm(adiv_observed_otus ~ temperature_deg_c + ph + salinity_psu, data = envi_micro)
+summary(multi)
 ```
 
 
