@@ -12,6 +12,7 @@ library(ggplot2)
 country_alp = read.csv("Country_alpha_div.csv")
 ```
 
+##ALPHA DIVERSITY WITH NUMBER OF SAMPLE
 ```{r}
 AlphaDiv_country <- ggplot(country_alp, aes(x = Number, y = Observed)) + geom_point() +
   geom_smooth(method=lm, se=FALSE) +
@@ -46,6 +47,7 @@ AlphaDiv_country_size
 country_alp_size = read.csv("Country_alpha_div1.csv")
 ```
 
+##LINEAR REGRESSION
 ```{r}
 lm_fit <- lm(Observed ~ country, data=country_alp_size)
 lm_fit
@@ -63,7 +65,7 @@ AlphaDiv_country_size2
 
 
 
-
+##LATITUDE
 ```{r}
 AlphaDiv_country_lat <- ggplot(country_alp, aes(x = latitude, y = Observed)) + geom_point() +
   geom_smooth(method=lm, se=FALSE) +
@@ -77,7 +79,7 @@ Alp_lat <- lm(latitude ~ Observed, data = country_alp)
 summary(Alp_lat)
 ```
 
-
+##LONGITUDE
 ```{r}
 AlphaDiv_country_lon <- ggplot(country_alp, aes(x = longitude, y = Observed)) + geom_point() +
   geom_smooth(method=lm, se=FALSE) +
