@@ -20,4 +20,5 @@
     * environment.Rmd
     * latitude.Rmd
     * longtitude.Rmd
-
+* **STREPTOMYCES TAXONOMY FILE**
+    * [TAXONOMY FILE](https://drive.google.com/file/d/1Cr1fjyM9MNazcv-yzV966DziyrzHdXsY/view?usp=drive_link)
