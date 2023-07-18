@@ -18,8 +18,8 @@
   *  R Markdown files
     * Streptomyces_alpha_div.Rmd
     * Streptomyces_alpha_div_country.Rmd
- * BETA DIVERSITY
-  * R Markdown file
+* BETA DIVERSITY
+  *  R Markdown files
     * Streptomyces_beta_div.Rmd
 * LINEAR REGRESSION OF ENVIRONMENT, LATITUDE AND LONGITUDE
   *  R Markdown file
