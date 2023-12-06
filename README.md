@@ -1,5 +1,5 @@
 # Strep_biogeo
-## _Streptomycin global biogeography project_
+## _Streptomyces biogeography project_
 
 * **STREPTOMYCES TAXONOMY FILE**
     * [TAXONOMY FILE](https://drive.google.com/file/d/1Cr1fjyM9MNazcv-yzV966DziyrzHdXsY/view?usp=drive_link)
